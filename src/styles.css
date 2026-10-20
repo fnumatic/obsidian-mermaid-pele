@@ -1,0 +1,11 @@
+.pele-diagram svg {
+    max-width: 100%;
+    height: auto;
+}
+
+.pele-error {
+    color: var(--text-error);
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
+    white-space: pre-wrap;
+}

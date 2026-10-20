@@ -1,0 +1,10 @@
+{
+    "id": "pele-mermaid",
+    "name": "Pele Mermaid",
+    "version": "0.1.0",
+    "minAppVersion": "1.10.3",
+    "description": "Renders Mermaid diagrams with Pele, faster and themed with CSS variables.",
+    "author": "Ulf Ninow",
+    "isDesktopOnly": false,
+    "main": "main.js"
+}

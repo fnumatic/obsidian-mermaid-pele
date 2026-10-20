@@ -1,0 +1,16 @@
+# Intellij
+*.iml
+.idea
+
+# npm
+node_modules
+
+# build
+dist/
+.vault
+coverage/
+
+# plugin
+main.js
+*.js.map
+data.json
