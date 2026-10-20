@@ -24,14 +24,14 @@ jobs:
       - name: Build
         run: |
           pnpm build
-          mkdir pele-mermaid
-          cp dist/main.js dist/manifest.json dist/styles.css pele-mermaid/
-          zip -r pele-mermaid.zip pele-mermaid
+          mkdir mermaid-pele
+          cp dist/main.js dist/manifest.json dist/styles.css mermaid-pele/
+          zip -r mermaid-pele.zip mermaid-pele
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            pele-mermaid.zip
+            mermaid-pele.zip
             dist/main.js
             dist/styles.css
             dist/manifest.json
