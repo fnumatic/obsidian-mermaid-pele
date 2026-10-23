@@ -14,8 +14,6 @@
         "dist/**",
         "coverage/**",
         ".vault/**",
-        "docusaurus/**",
-        "archive-phase2/**",
         ".github/**",
         "**/*.yml",
         "**/*.yaml",

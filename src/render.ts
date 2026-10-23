@@ -1,4 +1,4 @@
-import { render as renderPele } from 'pele';
+import { renderSvg } from './pele';
 
 const describeError = (error: unknown): string =>
     error instanceof Error ? error.message : String(error);
@@ -9,7 +9,7 @@ const describeError = (error: unknown): string =>
  */
 export function renderDiagram(content: string, el: HTMLElement): boolean {
     try {
-        const { svg } = renderPele(content.trim());
+        const svg = renderSvg(content.trim());
 
         const wrapper = document.createElement('div');
         wrapper.className = 'mermaid pele-diagram';

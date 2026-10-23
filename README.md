@@ -14,6 +14,8 @@ Copy `main.js`, `manifest.json` and `styles.css` into `<vault>/.obsidian/plugins
 
 ## Development
 
+Node 22.18 or newer is required: the helper scripts are TypeScript and run through Node's native type stripping.
+
 ```bash
 pnpm install
 pnpm dev        # build in watch mode and copy into a vault
@@ -27,6 +29,8 @@ pnpm build
 ## Compatibility
 
 Pele supports every diagram type built into Mermaid 12.1. Layout and spacing differ from Mermaid, HTML labels are not supported, and `themeVariables` do not apply. See [Pele's compatibility notes](https://pele.run/compatibility).
+
+Do not run the upstream Charts plugin (3.x) next to this one: it registers the same `chart-mermaid` block, so every diagram would render twice. Charts 0.0.1 and later leave diagram blocks to this plugin.
 
 ## License
 

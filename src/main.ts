@@ -7,6 +7,10 @@ import { installPeleFacade, removePeleFacade } from './facade';
 
 import './styles.css';
 
+const diagramProcessor = (content: string, el: HTMLElement): void => {
+    renderDiagram(content, el);
+};
+
 export default class PeleMermaidPlugin extends Plugin {
     settings!: PeleSettings;
 
@@ -15,14 +19,9 @@ export default class PeleMermaidPlugin extends Plugin {
 
         this.addSettingTab(new PeleSettingTab(this.app, this));
 
-        this.registerMarkdownCodeBlockProcessor('mermaid-pele', (content, el) => {
-            renderDiagram(content, el);
-        });
-
+        this.registerMarkdownCodeBlockProcessor('mermaid-pele', diagramProcessor);
         // Compatibility with notes written for obsidian-charts.
-        this.registerMarkdownCodeBlockProcessor('chart-mermaid', (content, el) => {
-            renderDiagram(content, el);
-        });
+        this.registerMarkdownCodeBlockProcessor('chart-mermaid', diagramProcessor);
 
         await this.applyRenderer();
     }
@@ -33,10 +32,15 @@ export default class PeleMermaidPlugin extends Plugin {
 
     /** Replaces or restores Obsidian's Mermaid renderer, depending on settings. */
     async applyRenderer(): Promise<void> {
-        if (this.settings.replaceBuiltin) {
-            await installPeleFacade();
-        } else {
+        if (!this.settings.replaceBuiltin) {
             removePeleFacade();
+            return;
+        }
+
+        if ((await installPeleFacade()) === 'unavailable') {
+            console.warn(
+                '[Pele] Built-in Mermaid is not available; keeping the original renderer.',
+            );
         }
     }
 

@@ -1,5 +1,7 @@
 import { loadMermaid } from 'obsidian';
-import { render as renderPele } from 'pele';
+import { isMermaidApi } from './mermaid-api';
+import type { MermaidApi, MermaidRenderResult } from './mermaid-api';
+import { renderSvg } from './pele';
 
 /**
  * Experimental: routes Obsidian's built-in ```mermaid rendering through Pele.
@@ -12,32 +14,37 @@ import { render as renderPele } from 'pele';
  * loader that writes the same global.
  */
 
-const FACADE_MARK = Symbol.for('obsidian-charts.pele-facade');
+const FACADE_MARK = Symbol.for('mermaid-pele.facade');
 
-type AnyObject = Record<string | symbol, unknown>;
+export type FacadeInstallResult = 'installed' | 'already' | 'unavailable';
+export type FacadeRemoveResult = 'restored' | 'skipped';
 
-type MermaidWindow = Window & {
-    mermaid?: unknown;
-    obsidianChartsMermaid?: unknown;
-};
+declare global {
+    interface Window {
+        /** Obsidian's global Mermaid object; set once its lazy loader has run. */
+        mermaid?: unknown;
+        /** Holds the Mermaid object the facade wraps, so it can be restored. */
+        mermaidPeleOriginal?: MermaidApi;
+    }
+}
 
-const isFacade = (value: unknown): boolean =>
-    typeof value === 'object' && value !== null && (value as AnyObject)[FACADE_MARK] === true;
+const isFacade = (value: unknown): value is MermaidApi =>
+    isMermaidApi(value) && Reflect.get(value, FACADE_MARK) === true;
 
 /** Pele is synchronous; Obsidian awaits `render`. */
 const renderViaPele = async (
     _id: string,
     text: string,
     _container?: unknown,
-): Promise<{ svg: string; bindFunctions: () => void }> => {
-    const { svg } = renderPele(text);
+): Promise<MermaidRenderResult> => {
+    const svg = renderSvg(text);
     return { svg, bindFunctions: () => undefined };
 };
 
 /** Wraps the real Mermaid object, overriding only `render`. */
-export function createPeleFacade(original: AnyObject): AnyObject {
+function createPeleFacade(original: MermaidApi): MermaidApi {
     return new Proxy(original, {
-        get(target, prop, receiver) {
+        get(target, prop, receiver): unknown {
             if (prop === FACADE_MARK) {
                 return true;
             }
@@ -53,29 +60,24 @@ export function createPeleFacade(original: AnyObject): AnyObject {
 }
 
 /** Resolves the real Mermaid object, waiting for Obsidian's lazy loader. */
-async function resolveOriginal(): Promise<AnyObject | null> {
-    const win = window as MermaidWindow;
-
+async function resolveOriginal(): Promise<MermaidApi | null> {
     try {
         if (typeof loadMermaid === 'function') {
-            const loaded = await loadMermaid();
-            if (typeof loaded === 'object' && loaded !== null) {
-                return loaded as AnyObject;
+            const loaded: unknown = await loadMermaid();
+            if (isMermaidApi(loaded)) {
+                return loaded;
             }
         }
     } catch {
         // Fall through to whatever already sits on the global.
     }
 
-    return typeof win.mermaid === 'object' && win.mermaid !== null
-        ? (win.mermaid as AnyObject)
-        : null;
+    return isMermaidApi(window.mermaid) ? window.mermaid : null;
 }
 
 /** Installs the facade unless it is already active. */
-export async function installPeleFacade(): Promise<'installed' | 'already' | 'unavailable'> {
-    const win = window as MermaidWindow;
-    if (isFacade(win.mermaid)) {
+export async function installPeleFacade(): Promise<FacadeInstallResult> {
+    if (isFacade(window.mermaid)) {
         return 'already';
     }
 
@@ -84,19 +86,18 @@ export async function installPeleFacade(): Promise<'installed' | 'already' | 'un
         return 'unavailable';
     }
 
-    win.obsidianChartsMermaid = original;
-    win.mermaid = createPeleFacade(original);
+    window.mermaidPeleOriginal = original;
+    window.mermaid = createPeleFacade(original);
     return 'installed';
 }
 
 /** Restores the original global, but only while the facade is still in place. */
-export function removePeleFacade(): 'restored' | 'skipped' {
-    const win = window as MermaidWindow;
-    if (!isFacade(win.mermaid)) {
+export function removePeleFacade(): FacadeRemoveResult {
+    if (!isFacade(window.mermaid)) {
         return 'skipped';
     }
 
-    win.mermaid = win.obsidianChartsMermaid;
-    delete win.obsidianChartsMermaid;
+    window.mermaid = window.mermaidPeleOriginal;
+    delete window.mermaidPeleOriginal;
     return 'restored';
 }

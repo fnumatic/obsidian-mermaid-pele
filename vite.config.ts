@@ -1,14 +1,11 @@
 import { defineConfig } from 'vite';
-import { builtinModules } from 'module';
-import { dirname, resolve } from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import { builtinModules } from 'node:module';
+import path from 'node:path';
 
 export default defineConfig({
     build: {
         lib: {
-            entry: resolve(__dirname, 'src/main.ts'),
+            entry: path.join(import.meta.dirname, 'src/main.ts'),
             formats: ['cjs'],
             fileName: () => 'main.js',
             cssFileName: 'styles',

@@ -11,38 +11,7 @@
         "builtin": true,
         "node": true
     },
-    "ignorePatterns": [
-        "dist/**",
-        "coverage/**",
-        ".vault/**",
-        "docusaurus/**",
-        "archive-phase2/**",
-        "**/*.svelte"
-    ],
-    "overrides": [
-        {
-            // Test mocks use untyped vi.fn() and reference mocked methods directly.
-            "files": ["**/*.test.ts"],
-            "rules": {
-                "vitest/require-mock-type-parameters": "off",
-                "typescript/unbound-method": "off"
-            }
-        },
-        {
-            // Mocks mirror external API shapes, including empty constructors.
-            "files": ["src/__mocks__/**"],
-            "rules": {
-                "no-useless-constructor": "off"
-            }
-        },
-        {
-            // Vendored upstream adapter snippet; keeps its `_`-prefixed Chart.js internals.
-            "files": ["src/utils/date-adapter/**"],
-            "rules": {
-                "no-underscore-dangle": "off"
-            }
-        }
-    ],
+    "ignorePatterns": ["dist/**", "coverage/**", ".vault/**"],
     "rules": {
         "no-unused-vars": [
             "error",
@@ -53,39 +22,19 @@
             }
         ],
         "eqeqeq": "error",
-        "no-underscore-dangle": ["error", { "allow": ["__dirname", "__mockMermaid"] }],
-        "import/no-unassigned-import": [
-            "error",
-            {
-                "allow": ["**/*.css", "virtual:uno.css"]
-            }
-        ],
-
-        // Static-only helper classes are used deliberately (`ImageOptimizer`
-        // mirrors the reference project's shape), so this stylistic rule is off.
-        "typescript/no-extraneous-class": "off",
+        "no-underscore-dangle": "error",
+        "import/no-unassigned-import": ["error", { "allow": ["**/*.css"] }],
         "typescript/consistent-type-imports": [
             "error",
             {
                 "prefer": "type-imports",
-                "fixStyle": "separate-type-imports",
-                // Lazy-loaded modules (chart.js, mermaid) must not be value-imported,
-                // so `typeof import('...')` is the only way to name their types.
-                "disallowTypeAnnotations": false
+                "fixStyle": "separate-type-imports"
             }
         ],
-
-        // Type-aware rules: evaluated by `pnpm run lint:typed` (--type-aware), not by `pnpm run lint`.
         "typescript/await-thenable": "error",
         "typescript/no-floating-promises": "error",
-
-        // Chart YAML is assembled from arrays of labels/values; a template literal
-        // is the intended way to render them as comma-separated lists.
-        "typescript/restrict-template-expressions": ["error", { "allowArray": true }],
-
-        // Chart.js config unions and test mocks are asserted deliberately across the
-        // dataset/type matrix; replacing them needs a dedicated refactor of
-        // `chartRenderer` (see the "I need to refactor this" note there).
+        // Obsidian's API and the window facade are untyped boundaries; tests
+        // narrow them through deliberate assertions.
         "typescript/no-unsafe-type-assertion": "off"
     }
 }

@@ -1,78 +1,70 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it } from 'vitest';
 import { installPeleFacade, removePeleFacade } from './facade';
+import {
+    createMermaidMock,
+    getWindowMermaid,
+    resetMermaidEnvironment,
+    setMockMermaid,
+    setWindowMermaid,
+} from './test-helpers';
 
-type AnyObject = Record<string, unknown>;
-
-const globalMermaid = (): unknown => (window as { mermaid?: unknown }).mermaid;
-const setGlobalMermaid = (value: unknown): void => {
-    (window as { mermaid?: unknown }).mermaid = value;
-};
-
-const setMockMermaid = (value: unknown): void => {
-    (globalThis as { __mockMermaid?: unknown }).__mockMermaid = value;
-};
-
-const noop = () => undefined;
-const originalRender = async () => ({ svg: '' });
+const noop = (): void => undefined;
 
 describe('Pele facade', () => {
-    afterEach(() => {
-        removePeleFacade();
-        setGlobalMermaid(undefined);
-        setMockMermaid(undefined);
-    });
+    afterEach(resetMermaidEnvironment);
 
     it('keeps every original method except render', async () => {
-        const original = {
+        const original = createMermaidMock({
             initialize: noop,
-            render: originalRender,
             getConfig: () => ({ theme: 'dark' }),
-        };
+        });
         setMockMermaid(original);
 
         expect(await installPeleFacade()).toBe('installed');
 
-        const facade = globalMermaid() as AnyObject;
-        expect(facade.initialize).toBe(noop);
-        expect((facade.getConfig as () => unknown)()).toEqual({ theme: 'dark' });
-        expect(facade.render).not.toBe(originalRender);
+        const facade = getWindowMermaid();
+        expect(facade).toBeDefined();
+        expect(facade?.initialize).toBe(noop);
+        expect(facade?.getConfig?.()).toEqual({ theme: 'dark' });
+        expect(facade?.render).not.toBe(original.render);
     });
 
     it('renders Mermaid source through Pele', async () => {
-        setMockMermaid({ initialize() {} });
+        setMockMermaid(createMermaidMock());
 
         await installPeleFacade();
 
-        const facade = globalMermaid() as {
-            render: (id: string, text: string, container?: unknown) => Promise<{ svg: string }>;
-        };
-        const { svg } = await facade.render('id', 'flowchart LR\n A[Start] --> B[End]', {});
+        const facade = getWindowMermaid();
+        if (!facade) {
+            throw new Error('facade was not installed');
+        }
 
+        const { svg } = await facade.render('id', 'flowchart LR\n A[Start] --> B[End]', {});
         expect(svg).toContain('<svg');
     });
 
     it('restores the original object', async () => {
-        const original = { initialize() {} };
+        const original = createMermaidMock();
         setMockMermaid(original);
 
         await installPeleFacade();
-        expect(globalMermaid()).not.toBe(original);
+        expect(getWindowMermaid()).not.toBe(original);
 
         expect(removePeleFacade()).toBe('restored');
-        expect(globalMermaid()).toBe(original);
+        expect(getWindowMermaid()).toBe(original);
     });
 
     it('leaves a foreign Mermaid instance alone', () => {
         const foreign = { render: () => undefined };
-        setGlobalMermaid(foreign);
+        setWindowMermaid(foreign);
 
         expect(removePeleFacade()).toBe('skipped');
-        expect(globalMermaid()).toBe(foreign);
+        expect(Reflect.get(window, 'mermaid')).toBe(foreign);
     });
 
     it('installs only once', async () => {
-        setMockMermaid({ initialize() {} });
+        setMockMermaid(createMermaidMock());
 
         expect(await installPeleFacade()).toBe('installed');
         expect(await installPeleFacade()).toBe('already');
