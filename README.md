@@ -34,4 +34,4 @@ Do not run the upstream Charts plugin (3.x) next to this one: it registers the s
 
 ## License
 
-AGPL-3.0
+MIT
