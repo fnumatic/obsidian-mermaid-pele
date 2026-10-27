@@ -10,7 +10,13 @@ An Obsidian plugin that renders Mermaid diagrams with [Pele](https://pele.run/),
 
 ## Install
 
-Copy `main.js`, `manifest.json` and `styles.css` into `<vault>/.obsidian/plugins/mermaid-pele/`, then enable the plugin in Settings → Community plugins.
+The plugin is not in the community plugin list yet. To install a release:
+
+1. Download `main.js`, `manifest.json` and `styles.css` from the latest release.
+2. Copy them into `<vault>/.obsidian/plugins/mermaid-pele/`.
+3. Enable **Pele Mermaid** under **Settings → Community plugins**.
+
+For local development, `pnpm dev` builds and copies the plugin into a vault.
 
 ## Development
 

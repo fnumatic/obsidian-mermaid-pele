@@ -1,10 +1,11 @@
 {
     "name": "obsidian-mermaid-pele",
-    "version": "0.1.0",
+    "version": "0.0.1",
     "description": "Render Mermaid diagrams in Obsidian with Pele.",
     "type": "module",
     "private": true,
     "license": "MIT",
+    "author": "Ulf Ninow",
     "scripts": {
         "dev": "node scripts/dev.ts",
         "dev:default": "node scripts/dev.ts --default",
